@@ -82,9 +82,11 @@ namespace LibraryManager
             booksMenu.Append(books.Length).AppendLine(") Sair\n");
             booksMenu.AppendLine("DIGITE UM NÚMERO: ");
 
+            //Exibir String no Console
             Console.Clear();
             Console.WriteLine(booksMenu.ToString());
 
+            //Try & Catch de Opções
             try
             {
                 uint option = uint.Parse(Console.ReadLine());
@@ -130,9 +132,11 @@ namespace LibraryManager
 
             booksMenu.AppendLine("DIGITE UM NÚMERO: ");
 
+            //Exibir String no Console
             Console.Clear();
             Console.Write(booksMenu.ToString());
 
+            //Try & Catch de Opções
             try
             {
                 switch (uint.Parse(Console.ReadLine()))
@@ -170,9 +174,11 @@ namespace LibraryManager
 
             editBooksMenu.AppendLine("DIGITE UM NÚMERO: ");
 
+            //Exibir String no Console
             Console.Clear();
             Console.WriteLine(editBooksMenu.ToString());
 
+            //Try & Catch de Opções
             try
             {
                 switch (uint.Parse(Console.ReadLine()))
@@ -214,6 +220,7 @@ namespace LibraryManager
             string authorName = string.Empty;
             string type = string.Empty;
 
+            //Exibir String no Console
             Console.Clear();
             Console.Write(editBooksMenu.ToString());
 
@@ -232,6 +239,7 @@ namespace LibraryManager
             Console.WriteLine("\nDigite o TIPO do livro: ");
             type = Console.ReadLine();
 
+            //Try & Catch de Criação
             try
             {
                 BooksManager.CreateBook(id, title, authorName, type);
@@ -261,9 +269,11 @@ namespace LibraryManager
             editBooksMenu.Append(books.Length).AppendLine(") Sair");
             editBooksMenu.AppendLine("DIGITE UM NÚMERO: ");
 
+            //Exibir String no Console
             Console.Clear();
             Console.Write(editBooksMenu.ToString());
 
+            //Try & Catch de Opções
             try
             {
                 uint option = uint.Parse(Console.ReadLine());
