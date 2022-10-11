@@ -1,96 +1,86 @@
-﻿using System;
-using System.IO;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Reflection.Metadata.BlobBuilder;
+﻿using System.Text;
+
+using LibraryManager.Managers;
 
 namespace LibraryManager
 {
     public class Startup
     {
         private bool errorOccurred;
-        private string currentDirectory;
 
         public void Main()
         {
-            errorOccurred = false;
-            currentDirectory = Directory.GetCurrentDirectory();
+            DirectoryManager.Start();
 
-            Directory.CreateDirectory(Path.Combine(currentDirectory, "Books"));
-
-            ShowMainMenu();
+            this.errorOccurred = false;
+            this.ShowMainMenu();
         }
 
         //===============================//
+        // MENU PRÍNCIPAL
         private void ShowMainMenu()
         {
+            // StringBuilder usada para construir o menu
             StringBuilder mainMenuContent = new();
 
-            ErrorMessage(mainMenuContent);
-            TitleMessage(mainMenuContent, "BIBLIOTECA");
+            this.ErrorMessage(mainMenuContent);
+            this.TitleMessage(mainMenuContent, "BIBLIOTECA");
 
             mainMenuContent.AppendLine("SELECIONE UMA OPÇÃO ABAIXO:");
             mainMenuContent.AppendLine("1) Pesquisar Ficheiros - Pesquise por ficheiros");
             mainMenuContent.AppendLine("2) Editar Ficheiros - Adicionar ou remover ficheiros");
-
             mainMenuContent.AppendLine("\nDIGITE UM NÚMERO: ");
 
+            //Apagar e escrever a String na tela
             Console.Clear();
             Console.Write(mainMenuContent.ToString());
 
+            //Try & Catch de Opções
             try
             {
-                uint option = uint.Parse(Console.ReadLine());
-                switch (option)
+                //Dicionario de Opções
+                Dictionary<uint, Action> menuOptions = new()
                 {
-                    case 1:
-                        ShowBooksMenu();
-                        break;
+                    [1] = new Action(this.ShowBooksMenu),
+                    [2] = new Action(this.ShowEditBookMenu),
+                    [3] = new Action(this.ShowMainMenu)
+                };
 
-                    case 2:
-                        ShowEditBookMenu();
-                        break;
-
-                    default:
-                        ShowMainMenu();
-                        break;
-                }
-
-                errorOccurred = false;
+                menuOptions[uint.Parse(Console.ReadLine())].Invoke();
+                this.errorOccurred = false;
             }
             catch (Exception)
             {
-                errorOccurred = true;
-                ShowMainMenu();
+                this.errorOccurred = true;
+                this.ShowMainMenu();
             }
         }
 
         //===============================//
+        // MENUS DE MOSTRAR LIVROS
         private void ShowBooksMenu()
         {
-            Book[] books = GetBooks();
+            Book[] books = BooksManager.GetBooks();
 
             StringBuilder booksMenu = new();
-            ErrorMessage(booksMenu);
-            TitleMessage(booksMenu, "LIVROS REGISTRADOS");
+            this.ErrorMessage(booksMenu);
+            this.TitleMessage(booksMenu, "LIVROS REGISTRADOS");
 
-            booksMenu.AppendLine($"LIVROS: ({books.Length})");
-            if(books.Length > 0)
+            booksMenu.Append("LIVROS: (").Append(books.Length).AppendLine(")");
+            if (books.Length > 0)
             {
                 for (int i = 0; i < books.Length; i++)
                 {
-                    booksMenu.AppendLine($"{i}) {books[i].Title}");
+                    booksMenu.Append(i).Append(") ").AppendLine(books[i].Title);
                 }
             }
             else
             {
-                booksMenu.AppendLine($"Nenhum livro registrado!\n");
+                booksMenu.AppendLine("Nenhum livro registrado!\n");
             }
 
-            booksMenu.AppendLine($"{books.Length}) Sair\n");
-            booksMenu.AppendLine($"DIGITE UM NÚMERO: ");
+            booksMenu.Append(books.Length).AppendLine(") Sair\n");
+            booksMenu.AppendLine("DIGITE UM NÚMERO: ");
 
             Console.Clear();
             Console.WriteLine(booksMenu.ToString());
@@ -99,139 +89,139 @@ namespace LibraryManager
             {
                 uint option = uint.Parse(Console.ReadLine());
                 Book selectedBook = books.ElementAtOrDefault((int)option);
-                if(selectedBook != null)
+
+                this.errorOccurred = false;
+
+                if (selectedBook != null)
                 {
-                    errorOccurred = false;
-                    BookDetails(selectedBook);
+                    this.BookDetails(selectedBook);
                     return;
                 }
-                else if(option == books.Length)
+
+                if (option == books.Length)
                 {
-                    errorOccurred = false;
-                    ShowMainMenu();
+                    this.ShowMainMenu();
                     return;
                 }
-                else
-                {
-                    errorOccurred = true;
-                    ShowBooksMenu();
-                    return;
-                }
+
+                this.errorOccurred = true;
+                this.ShowBooksMenu();
+                return;
             }
             catch (Exception)
             {
-                errorOccurred = true;
-                ShowBooksMenu();
+                this.errorOccurred = true;
+                this.ShowBooksMenu();
             }
         }
         private void BookDetails(Book book)
         {
             StringBuilder booksMenu = new();
-            ErrorMessage(booksMenu);
-            TitleMessage(booksMenu, "DETALHES DO LIVRO");
+            this.ErrorMessage(booksMenu);
+            this.TitleMessage(booksMenu, "DETALHES DO LIVRO");
 
-            booksMenu.AppendLine($"- Id: {book.Id}");
-            booksMenu.AppendLine($"- Título: {book.Title}");
-            booksMenu.AppendLine($"- Author: {book.AuthorName}");
-            booksMenu.AppendLine($"- Tipo: {book.Type}");
+            booksMenu.Append("- Id: ").AppendLine(book.Id);
+            booksMenu.Append("- Título: ").AppendLine(book.Title);
+            booksMenu.Append("- Author: ").AppendLine(book.AuthorName);
+            booksMenu.Append("- Tipo: ").AppendLine(book.Type);
 
-            booksMenu.AppendLine($"\nSELECIONE UMA OPÇÃO ABAIXO: ");
-            booksMenu.AppendLine($"1) Sair\n");
+            booksMenu.AppendLine("\nSELECIONE UMA OPÇÃO ABAIXO: ");
+            booksMenu.AppendLine("1) Sair\n");
 
-            booksMenu.AppendLine($"DIGITE UM NÚMERO: ");
+            booksMenu.AppendLine("DIGITE UM NÚMERO: ");
 
             Console.Clear();
             Console.Write(booksMenu.ToString());
 
             try
             {
-                uint option = uint.Parse(Console.ReadLine());
-                switch (option)
+                switch (uint.Parse(Console.ReadLine()))
                 {
                     case 1:
-                        ShowBooksMenu();
+                        this.ShowBooksMenu();
                         break;
 
                     default:
-                        BookDetails(book);
+                        this.BookDetails(book);
                         break;
                 }
 
-                errorOccurred = false;
+                this.errorOccurred = false;
             }
             catch (Exception)
             {
-                errorOccurred = true;
-                ShowMainMenu();
+                this.errorOccurred = true;
+                this.ShowMainMenu();
             }
         }
 
         //===============================//
+        // MENUS DE EDIÇÃO DOS LIVROS
         private void ShowEditBookMenu()
         {
             StringBuilder editBooksMenu = new();
-            ErrorMessage(editBooksMenu);
-            TitleMessage(editBooksMenu, "EDIÇÃO DE FICHEIROS");
+            this.ErrorMessage(editBooksMenu);
+            this.TitleMessage(editBooksMenu, "EDIÇÃO DE FICHEIROS");
 
             editBooksMenu.AppendLine("SELECIONE UMA OPÇÃO ABAIXO:");
             editBooksMenu.AppendLine("1) Adicionar - Adicione um ficheiro");
             editBooksMenu.AppendLine("2) Remover - Remova um ficheiro");
             editBooksMenu.AppendLine("3) Sair\n");
 
-            editBooksMenu.AppendLine($"DIGITE UM NÚMERO: ");
+            editBooksMenu.AppendLine("DIGITE UM NÚMERO: ");
 
             Console.Clear();
             Console.WriteLine(editBooksMenu.ToString());
 
             try
             {
-                uint option = uint.Parse(Console.ReadLine());
-                switch (option)
+                switch (uint.Parse(Console.ReadLine()))
                 {
                     case 1:
-                        AddBookMenu();
+                        this.AddBookMenu();
                         break;
 
                     case 2:
-                        RemoveBookMenu();
+                        this.RemoveBookMenu();
                         break;
 
                     case 3:
-                        ShowMainMenu();
+                        this.ShowMainMenu();
                         break;
 
                     default:
-                        ShowEditBookMenu();
+                        this.ShowEditBookMenu();
                         break;
                 }
 
-                errorOccurred = false;
+                this.errorOccurred = false;
             }
             catch (Exception)
             {
-                errorOccurred = true;
-                ShowEditBookMenu();
+                this.errorOccurred = true;
+                this.ShowEditBookMenu();
             }
         }
         private void AddBookMenu()
         {
             StringBuilder editBooksMenu = new();
-            ErrorMessage(editBooksMenu);
-            TitleMessage(editBooksMenu, "ADICIONAR UM FICHEIRO");
+            this.ErrorMessage(editBooksMenu);
+            this.TitleMessage(editBooksMenu, "ADICIONAR UM FICHEIRO");
 
-            Book[] books = GetBooks();
-
+            Book[] books = BooksManager.GetBooks();
             string id = string.Empty;
             string title = string.Empty;
             string authorName = string.Empty;
             string type = string.Empty;
 
+            Console.Clear();
+            Console.Write(editBooksMenu.ToString());
+
             do
             {
-                Console.WriteLine("\nDigite o ID do livro: ");
+                Console.WriteLine("\nDigite o ID do livro: (Deve ser único)");
                 id = Console.ReadLine();
             } while (Array.Find(books, x => x.Id == id) != null);
-
 
             Console.WriteLine("\nDigite o TÍTULO do livro: ");
             title = Console.ReadLine();
@@ -244,7 +234,7 @@ namespace LibraryManager
 
             try
             {
-                CreateBook(id, title, authorName, type);
+                BooksManager.CreateBook(id, title, authorName, type);
                 Console.WriteLine("\nLIVRO CRIADO COM SUCESSO!");
             }
             catch (Exception)
@@ -252,24 +242,24 @@ namespace LibraryManager
                 Console.WriteLine("\nCRIAÇÃO DO LIVRO FALHOU!");
             }
 
-            ShowMainMenu();
+            this.ShowMainMenu();
         }
         private void RemoveBookMenu()
         {
-            Book[] books = GetBooks();
+            Book[] books = BooksManager.GetBooks();
 
             StringBuilder editBooksMenu = new();
-            ErrorMessage(editBooksMenu);
-            TitleMessage(editBooksMenu, "ADICIONAR UM FICHEIRO");
+            this.ErrorMessage(editBooksMenu);
+            this.TitleMessage(editBooksMenu, "ADICIONAR UM FICHEIRO");
 
             editBooksMenu.AppendLine("SELECIONE UM LIVRO ABAIXO PARA REMOVER:");
             for (int i = 0; i < books.Length; i++)
             {
-                editBooksMenu.AppendLine($"{i}) {books[i].Title}");
+                editBooksMenu.Append(i).Append(") ").AppendLine(books[i].Title);
             }
 
-            editBooksMenu.AppendLine($"{books.Length}) Sair");
-            editBooksMenu.AppendLine($"DIGITE UM NÚMERO: ");
+            editBooksMenu.Append(books.Length).AppendLine(") Sair");
+            editBooksMenu.AppendLine("DIGITE UM NÚMERO: ");
 
             Console.Clear();
             Console.Write(editBooksMenu.ToString());
@@ -280,62 +270,36 @@ namespace LibraryManager
                 Book selectedBook = books.ElementAtOrDefault((int)option);
                 if (selectedBook != null)
                 {
-                    errorOccurred = false;
-                    DeleteBook(selectedBook);
+                    this.errorOccurred = false;
+                    BooksManager.DeleteBook(selectedBook);
                 }
 
-                ShowMainMenu();
+                this.ShowMainMenu();
             }
             catch (Exception)
             {
-                errorOccurred = true;
-                ShowBooksMenu();
+                this.errorOccurred = true;
+                this.ShowBooksMenu();
             }
         }
 
         //===============================//
+        // MÉTODOS AUXILIARES
         private void TitleMessage(StringBuilder builder, string message)
         {
-            builder.AppendLine(new string('=', 20) + "\n");
-            builder.AppendLine($"{message}\n");
-            builder.AppendLine(new string('=', 20) + "\n");
+            builder.Append(new string('=', 20)).AppendLine("\n");
+            builder.Append(message).AppendLine("\n");
+            builder.Append(new string('=', 20)).AppendLine("\n");
         }
         private void ErrorMessage(StringBuilder builder)
         {
-            if (errorOccurred)
+            if (this.errorOccurred)
             {
                 builder.AppendLine("OH NÃO, ALGO DEU ERRADO!");
                 builder.AppendLine("Causas do erro:\n" +
                                    "- Digitou caracteres que não são números\n" +
                                    "- Digitou um menu inexistente.\n\n");
             }
-        }
-
-        private void CreateBook(string id, string title, string author, string type)
-        {
-            using StreamWriter bookStream = new(Path.Combine(currentDirectory, "Books", $"{id}.txt"));
-            bookStream.WriteLine($"id:{id}");
-            bookStream.WriteLine($"title:{title}");
-            bookStream.WriteLine($"author:{author}");
-            bookStream.WriteLine($"type:{type}");
-            bookStream.Close();
-        }
-        private void DeleteBook(Book book)
-        {
-            File.Delete(Path.Combine(currentDirectory, "Books", $"{book.Id}.txt"));
-        }
-        private Book[] GetBooks()
-        {
-            string[] booksPaths = Directory.GetFiles(Path.Combine(currentDirectory, "Books"), "*.txt");
-            Book[] books = new Book[booksPaths.Length];
-
-            for (int i = 0; i < booksPaths.Length; i++)
-            {
-                books[i] = new Book();
-                books[i].GetInformations(File.ReadAllText(booksPaths[i]));
-            }
-
-            return books;
         }
     }
 }
